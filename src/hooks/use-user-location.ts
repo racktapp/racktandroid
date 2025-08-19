@@ -57,30 +57,38 @@ export function useUserLocation() {
         ...prev,
         error: error.message || 'Failed to get location.',
         loading: false,
-        manualLocation: true, // Fallback to manual on error
+        manualLocation: false,
       }));
     }
   }, []);
 
-  // On initial mount, check permission status and fetch if already granted.
+  // On initial mount, request location permission if needed
   useEffect(() => {
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
-      navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
-        if (permissionStatus.state === 'granted') {
-          enableLocation();
-        } else {
-          // If not granted, we just stop loading and wait for user action.
-          setState(prev => ({ ...prev, loading: false }));
-        }
-        permissionStatus.onchange = () => {
-           if (permissionStatus.state === 'granted') {
+      const anyNavigator = navigator as any;
+      if (anyNavigator.permissions && anyNavigator.permissions.query) {
+        anyNavigator.permissions
+          .query({ name: 'geolocation' })
+          .then((permissionStatus: any) => {
+            if (permissionStatus.state === 'granted' || permissionStatus.state === 'prompt') {
               enableLocation();
-           }
-        };
-      });
+            } else {
+              setState((prev) => ({ ...prev, loading: false }));
+            }
+            permissionStatus.onchange = () => {
+              if (permissionStatus.state === 'granted') {
+                enableLocation();
+              }
+            };
+          })
+          .catch(() => {
+            enableLocation();
+          });
+      } else {
+        enableLocation();
+      }
     } else {
-        // Geolocation not supported
-        setState(prev => ({ ...prev, loading: false, error: 'Geolocation is not supported.' }));
+      setState((prev) => ({ ...prev, loading: false, error: 'Geolocation is not supported.' }));
     }
   }, [enableLocation]);
 
