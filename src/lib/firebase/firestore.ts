@@ -111,6 +111,13 @@ export async function searchUsers(usernameQuery: string, currentUserId: string):
     }
 }
 
+export async function getUserByUsername(username: string): Promise<User | null> {
+    const q = query(collection(db, 'users'), where('username', '==', username));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return null;
+    return snapshot.docs[0].data() as User;
+}
+
 async function isUsernameUnique(username: string, userId: string): Promise<boolean> {
   const q = query(collection(db, 'users'), where('username', '==', username.toLowerCase()));
   const snapshot = await getDocs(q);
