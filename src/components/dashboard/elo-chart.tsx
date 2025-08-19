@@ -32,8 +32,8 @@ export function EloChart({ data }: EloChartProps) {
       </CardHeader>
       <CardContent>
         {data.length > 0 ? (
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
-            <LineChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+            <ChartContainer config={chartConfig} className="h-[250px] w-full aspect-auto">
+            <LineChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis 
                     dataKey="date" 
