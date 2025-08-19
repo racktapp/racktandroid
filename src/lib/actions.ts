@@ -40,6 +40,7 @@ import {
     getFriendshipStatus,
     deleteGame,
     getGameFromDb,
+    getUserByUsername,
     deleteOpenChallenge,
     logPracticeSession,
     deletePracticeSession,
@@ -751,18 +752,22 @@ const calculateLongestStreak = (matches: Match[], targetPlayerId: string): numbe
 };
 
 
-export async function getProfilePageDataAction(profileUserId: string, currentUserId: string | null, sport: Sport) {
-    const profileUserDoc = await getGameFromDb<User>(profileUserId, 'users');
+export async function getProfilePageDataAction(profileUserIdOrUsername: string, currentUserId: string | null, sport: Sport) {
+    let profileUserDoc = await getGameFromDb<User>(profileUserIdOrUsername, 'users');
+    if (!profileUserDoc) {
+        profileUserDoc = await getUserByUsername(profileUserIdOrUsername);
+    }
     if (!profileUserDoc) return null;
     const profileUser = profileUserDoc;
+    const profileUserId = profileUser.uid;
 
     const recentMatches = await getConfirmedMatchesForUser(profileUserId, 5);
-    
+
     if (currentUserId && currentUserId !== profileUserId) {
         const friendship = await getFriendshipStatus(currentUserId, profileUserId);
-        
+
         const headToHeadMatches = await getHeadToHeadMatches(currentUserId, profileUserId, sport);
-        
+
         const currentUserWins = headToHeadMatches.filter(m => m.winner.includes(currentUserId)).length;
         const profileUserWins = headToHeadMatches.filter(m => m.winner.includes(profileUserId)).length;
 
